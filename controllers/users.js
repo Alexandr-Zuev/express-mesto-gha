@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require("../models/user");
 
 async function getUsers(req, res) {
   try {
@@ -14,7 +14,9 @@ async function getUserById(req, res) {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res
+        .status(404)
+        .json({ message: "Запрашиваемый пользователь не найден" });
     }
     return res.status(200).json(user);
   } catch (err) {
