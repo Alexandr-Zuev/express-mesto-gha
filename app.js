@@ -2,29 +2,30 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3003 } = process.env;
 const app = express();
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/", require("./routes/users"));
-app.use("/", require("./routes/cards"));
-
 app.use((req, res, next) => {
   req.user = {
-    _id: "5d8b8592978f8bd833ca8133",
+    _id: "658c35d4d8f202226f0b1b6c",
   };
 
   next();
 });
+
+app.use("/", require("./routes/users"));
+app.use("/", require("./routes/cards"));
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
 });
 
 const mongoose = require("mongoose");
+
 mongoose.connect("mongodb://127.0.0.1:27017/mestodb");
 const db = mongoose.connection;
 
@@ -32,3 +33,7 @@ db.on("error", console.error.bind(console, "Ошибка подключения 
 db.once("open", () => {
   console.log("Успешное подключение к MongoDB!");
 });
+
+module.exports.createCard = (req, res) => {
+  console.log(req.user._id);
+};

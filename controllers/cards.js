@@ -1,4 +1,4 @@
-const Card = require("../models/card");
+const Card = require('../models/card');
 
 async function getCards(req, res) {
   try {
@@ -11,7 +11,7 @@ async function getCards(req, res) {
 
 async function createCard(req, res) {
   try {
-    const newCard = new Card(req.body);
+    const newCard = new Card({ name: req.body.name, link: req.body.link, owner: req.user._id });
     await newCard.save();
     res.status(201).json(newCard);
   } catch (err) {
@@ -26,11 +26,49 @@ async function deleteCardById(req, res) {
     if (!deletedCard) {
       return res
         .status(404)
-        .json({ message: "Запрашиваемая карточка не найдена" });
+        .json({ message: 'Запрашиваемая карточка не найдена' });
     }
-    return res.status(200).json({ message: "Карточка успешно удалена" });
+    return res.status(200).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
     return res.status(500).json({ message: err.message });
+  }
+}
+
+async function likeCard(req, res) {
+  const { cardId } = req.params;
+  try {
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    );
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: 'Карточка не найдена' });
+    }
+
+    return res.status(200).json(updatedCard);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+async function unlikeCard(req, res) {
+  const { cardId } = req.params;
+  try {
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    );
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: 'Карточка не найдена' });
+    }
+
+    return res.status(200).json(updatedCard);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }
 
@@ -38,4 +76,6 @@ module.exports = {
   getCards,
   createCard,
   deleteCardById,
+  likeCard,
+  unlikeCard,
 };
