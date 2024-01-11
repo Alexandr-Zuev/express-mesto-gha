@@ -15,7 +15,7 @@ async function createCard(req, res) {
     await newCard.save();
     res.status(201).json(newCard);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(404).json({ message: err.message });
   }
 }
 
