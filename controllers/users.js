@@ -20,6 +20,11 @@ async function getUserById(req, res) {
     }
     return res.status(200).json(user);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res
+        .status(404)
+        .json({ message: 'Запрашиваемый пользователь с некорректным id' });
+    }
     return res.status(500).json({ message: err.message });
   }
 }
@@ -30,7 +35,7 @@ async function createUser(req, res) {
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(404).json({ message: err.message });
   }
 }
 
