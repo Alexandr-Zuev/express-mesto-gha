@@ -43,9 +43,9 @@ async function updateProfile(req, res) {
     user.name = req.body.name;
     user.about = req.body.about;
     await user.save();
-    res.status(200).json(user);
+    return res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 }
 
@@ -57,9 +57,9 @@ async function updateAvatar(req, res) {
     }
     user.avatar = req.body.avatar;
     await user.save();
-    res.status(200).json(user);
+    return res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 }
 

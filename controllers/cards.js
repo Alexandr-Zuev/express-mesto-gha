@@ -49,7 +49,7 @@ async function likeCard(req, res) {
 
     return res.status(200).json(updatedCard);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 }
 
@@ -68,7 +68,7 @@ async function unlikeCard(req, res) {
 
     return res.status(200).json(updatedCard);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 }
 
