@@ -10,13 +10,22 @@ async function getCards(req, res) {
 }
 
 async function createCard(req, res) {
+  let response;
   try {
     const newCard = new Card({ name: req.body.name, link: req.body.link, owner: req.user._id });
+    await newCard.validate();
+
     await newCard.save();
-    res.status(201).json(newCard);
+    response = res.status(201).json(newCard);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    if (err.name === 'ValidationError') {
+      response = res.status(400).json({ message: 'Ошибка валидации данных карточки', errors: err.errors });
+    } else {
+      response = res.status(404).json({ message: err.message });
+    }
   }
+
+  return response;
 }
 
 async function deleteCardById(req, res) {

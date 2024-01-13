@@ -22,7 +22,7 @@ async function getUserById(req, res) {
   } catch (err) {
     if (err.name === 'CastError') {
       return res
-        .status(404)
+        .status(400)
         .json({ message: 'Запрашиваемый пользователь с некорректным id' });
     }
     return res.status(500).json({ message: err.message });
@@ -30,13 +30,22 @@ async function getUserById(req, res) {
 }
 
 async function createUser(req, res) {
+  let response;
   try {
     const newUser = new User(req.body);
+    await newUser.validate();
+
     await newUser.save();
-    res.status(201).json(newUser);
+    response = res.status(201).json(newUser);
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    if (err.name === 'ValidationError') {
+      response = res.status(400).json({ message: 'Ошибка валидации данных пользователя', errors: err.errors });
+    } else {
+      response = res.status(500).json({ message: err.message });
+    }
   }
+
+  return response;
 }
 
 async function updateProfile(req, res) {
