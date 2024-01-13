@@ -39,7 +39,7 @@ async function createUser(req, res) {
     response = res.status(201).json(newUser);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      response = res.status(400).json({ message: 'Ошибка валидации данных пользователя', errors: err.errors });
+      response = res.status(400).json({ message: 'Ошибка валидации данных пользователя' });
     } else {
       response = res.status(500).json({ message: err.message });
     }
@@ -63,7 +63,7 @@ async function updateProfile(req, res) {
     return res.status(200).json(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Ошибка валидации данных пользователя', errors: err.errors });
+      return res.status(400).json({ message: 'Ошибка валидации данных пользователя' });
     }
     return res.status(500).json({ message: err.message });
   }
@@ -75,15 +75,13 @@ async function updateAvatar(req, res) {
     if (!user) {
       return res.status(404).json({ message: 'Запрашиваемый пользователь не найден' });
     }
-
     user.avatar = req.body.avatar;
-
     await user.validate();
     await user.save();
     return res.status(200).json(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Ошибка валидации данных пользователя', errors: err.errors });
+      return res.status(400).json({ message: 'Ошибка валидации данных пользователя' });
     }
     return res.status(500).json({ message: err.message });
   }

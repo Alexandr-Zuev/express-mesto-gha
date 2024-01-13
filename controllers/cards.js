@@ -19,7 +19,7 @@ async function createCard(req, res) {
     response = res.status(201).json(newCard);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      response = res.status(400).json({ message: 'Ошибка валидации данных карточки', errors: err.errors });
+      response = res.status(400).json({ message: 'Ошибка валидации данных карточки' });
     } else {
       response = res.status(404).json({ message: err.message });
     }
