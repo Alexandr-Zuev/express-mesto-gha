@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 async function getCards(req, res) {
@@ -30,12 +31,15 @@ async function createCard(req, res) {
 
 async function deleteCardById(req, res) {
   const { cardId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    return res.status(400).json({ message: 'Некорректный ID карточки' });
+  }
+
   try {
     const deletedCard = await Card.findByIdAndDelete(cardId);
     if (!deletedCard) {
-      return res
-        .status(404)
-        .json({ message: 'Запрашиваемая карточка не найдена' });
+      return res.status(404).json({ message: 'Запрашиваемая карточка не найдена' });
     }
     return res.status(200).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
@@ -45,6 +49,11 @@ async function deleteCardById(req, res) {
 
 async function likeCard(req, res) {
   const { cardId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    return res.status(400).json({ message: 'Некорректный ID карточки' });
+  }
+
   try {
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
@@ -64,6 +73,11 @@ async function likeCard(req, res) {
 
 async function unlikeCard(req, res) {
   const { cardId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    return res.status(400).json({ message: 'Некорректный ID карточки' });
+  }
+
   try {
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,

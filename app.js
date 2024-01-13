@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
 const path = require('path');
 const express = require('express');
@@ -20,6 +21,10 @@ app.use((req, res, next) => {
 
 app.use('/', require('./routes/users'));
 app.use('/', require('./routes/cards'));
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Страница не найдена' });
+});
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
