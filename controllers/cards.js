@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 
+const OK = 200;
+const CREATED = 201;
+const ERROR_CODE = 400;
+const NOT_FOUND = 404;
+const SERVER_ERROR = 500;
+
 async function getCards(req, res) {
   try {
     const cards = await Card.find();
-    res.status(200).json(cards);
+    res.status(OK).json(cards);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
   }
 }
 
@@ -17,12 +23,12 @@ async function createCard(req, res) {
     await newCard.validate();
 
     await newCard.save();
-    response = res.status(201).json(newCard);
+    response = res.status(CREATED).json(newCard);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      response = res.status(400).json({ message: 'Ошибка валидации данных карточки' });
+      response = res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных карточки' });
     } else {
-      response = res.status(404).json({ message: err.message });
+      response = res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
     }
   }
 
@@ -33,17 +39,17 @@ async function deleteCardById(req, res) {
   const { cardId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    return res.status(400).json({ message: 'Некорректный ID карточки' });
+    return res.status(ERROR_CODE).json({ message: 'Некорректный ID карточки' });
   }
 
   try {
     const deletedCard = await Card.findByIdAndDelete(cardId);
     if (!deletedCard) {
-      return res.status(404).json({ message: 'Запрашиваемая карточка не найдена' });
+      return res.status(NOT_FOUND).json({ message: 'Запрашиваемая карточка не найдена' });
     }
-    return res.status(200).json({ message: 'Карточка успешно удалена' });
+    return res.status(OK).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
   }
 }
 
@@ -51,7 +57,7 @@ async function likeCard(req, res) {
   const { cardId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    return res.status(400).json({ message: 'Некорректный ID карточки' });
+    return res.status(ERROR_CODE).json({ message: 'Некорректный ID карточки' });
   }
 
   try {
@@ -62,12 +68,12 @@ async function likeCard(req, res) {
     );
 
     if (!updatedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
+      return res.status(NOT_FOUND).json({ message: 'Карточка не найдена' });
     }
 
-    return res.status(200).json(updatedCard);
+    return res.status(OK).json(updatedCard);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
   }
 }
 
@@ -75,7 +81,7 @@ async function unlikeCard(req, res) {
   const { cardId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    return res.status(400).json({ message: 'Некорректный ID карточки' });
+    return res.status(ERROR_CODE).json({ message: 'Некорректный ID карточки' });
   }
 
   try {
@@ -86,12 +92,12 @@ async function unlikeCard(req, res) {
     );
 
     if (!updatedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
+      return res.status(NOT_FOUND).json({ message: 'Карточка не найдена' });
     }
 
-    return res.status(200).json(updatedCard);
+    return res.status(OK).json(updatedCard);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
   }
 }
 
