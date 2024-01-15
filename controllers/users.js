@@ -1,10 +1,15 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const OK = 200;
 const CREATED = 201;
 const ERROR_CODE = 400;
+const UNAUTHORIZED = 401;
 const NOT_FOUND = 404;
 const SERVER_ERROR = 500;
+const SOLT_ROUND = 10;
+const SECRET_KEY = '123';
 
 async function getUsers(req, res) {
   try {
@@ -33,9 +38,17 @@ async function getUserById(req, res) {
 
 async function createUser(req, res) {
   try {
-    const newUser = new User(req.body);
-    await newUser.validate();
+    const {
+      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'ссылка', email, password,
+    } = req.body;
 
+    const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
+
+    const newUser = new User({
+      name, about, avatar, email, password: hashedPassword,
+    });
+
+    await newUser.validate();
     await newUser.save();
     return res.status(CREATED).json(newUser);
   } catch (err) {
@@ -85,10 +98,29 @@ async function updateAvatar(req, res) {
   }
 }
 
+async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email }).select('+password');
+
+    if (user && await bcrypt.compare(password, user.password)) {
+      const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '1w' });
+      res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+      return res.status(OK).json({ message: 'Авторизация успешна', token });
+    }
+    return res.status(UNAUTHORIZED).json({ message: 'Неправильная почта или пароль' });
+  } catch (err) {
+    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+  }
+}
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateProfile,
   updateAvatar,
+  login,
 };

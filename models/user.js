@@ -24,12 +24,13 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: (value) => validator.isEmail(value),
-      message: 'Invalid email address',
+      message: 'Некорректный email',
     },
   },
   password: {
     type: String,
     required: true,
+    select: false,
   },
 }, { versionKey: false, timestamps: true });
 
