@@ -4,23 +4,21 @@ const User = require('../models/user');
 
 const OK = 200;
 const CREATED = 201;
-const ERROR_CODE = 400;
 const UNAUTHORIZED = 401;
 const NOT_FOUND = 404;
-const SERVER_ERROR = 500;
 const SOLT_ROUND = 10;
 const SECRET_KEY = '123';
 
-async function getUsers(req, res) {
+async function getUsers(req, res, next) {
   try {
     const users = await User.find();
-    res.status(OK).json(users);
+    return res.status(OK).json(users);
   } catch (err) {
-    res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
 
-async function getUserById(req, res) {
+async function getUserById(req, res, next) {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
@@ -29,14 +27,11 @@ async function getUserById(req, res) {
     }
     return res.status(OK).json(user);
   } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(ERROR_CODE).json({ message: 'Некорректный формат идентификатора пользователя' });
-    }
-    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
 
-async function createUser(req, res) {
+async function createUser(req, res, next) {
   try {
     const {
       name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'ссылка', email, password,
@@ -52,14 +47,11 @@ async function createUser(req, res) {
     await newUser.save();
     return res.status(CREATED).json(newUser);
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
-    }
-    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
 
-async function updateProfile(req, res) {
+async function updateProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -73,14 +65,11 @@ async function updateProfile(req, res) {
     await user.save();
     return res.status(OK).json(user);
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
-    }
-    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
 
-async function updateAvatar(req, res) {
+async function updateAvatar(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -91,36 +80,51 @@ async function updateAvatar(req, res) {
     await user.save();
     return res.status(OK).json(user);
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
-    }
-    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
 
-async function login(req, res) {
+async function getMyProfile(req, res, next) {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(NOT_FOUND).json({ message: 'Запрашиваемый пользователь не найден' });
+    }
+
+    return res.status(OK).json(user);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function login(req, res, next) {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select('+password');
 
-    if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '1w' });
-      res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    if (user) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      return res.status(OK).json({ message: 'Авторизация успешна', token });
+      if (isPasswordValid) {
+        const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '1w' });
+        res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        return res.status(OK).json({ message: 'Авторизация успешна', token });
+      }
+
+      return res.status(UNAUTHORIZED).json({ message: 'Неправильный пароль' });
     }
-    return res.status(UNAUTHORIZED).json({ message: 'Неправильная почта или пароль' });
+    return res.status(UNAUTHORIZED).json({ message: 'Пользователь с такой почтой не найден' });
   } catch (err) {
-    return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
+    return next(err);
   }
 }
-
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateProfile,
   updateAvatar,
+  getMyProfile,
   login,
 };

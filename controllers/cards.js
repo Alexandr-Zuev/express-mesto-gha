@@ -43,10 +43,22 @@ async function deleteCardById(req, res) {
   }
 
   try {
+    const cardToDelete = await Card.findById(cardId);
+
+    if (!cardToDelete) {
+      return res.status(NOT_FOUND).json({ message: 'Запрашиваемая карточка не найдена' });
+    }
+
+    if (cardToDelete.owner.toString() !== req.user._id) {
+      return res.status(ERROR_CODE).json({ message: 'Вы не можете удалить карточку другого пользователя' });
+    }
+
     const deletedCard = await Card.findByIdAndDelete(cardId);
+
     if (!deletedCard) {
       return res.status(NOT_FOUND).json({ message: 'Запрашиваемая карточка не найдена' });
     }
+
     return res.status(OK).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
     return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });

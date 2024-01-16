@@ -17,6 +17,13 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator: (value) => {
+        const urlRegex = /^(https?|http):\/\/(?:www\.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+$/;
+        return urlRegex.test(value);
+      },
+      message: 'Некорректный URL для аватара',
+    },
   },
   email: {
     type: String,
