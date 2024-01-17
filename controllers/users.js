@@ -4,8 +4,6 @@ const User = require('../models/user');
 
 const OK = 200;
 const CREATED = 201;
-const UNAUTHORIZED = 401;
-const NOT_FOUND = 404;
 const SOLT_ROUND = 10;
 const SECRET_KEY = '123';
 
@@ -23,7 +21,9 @@ async function getUserById(req, res, next) {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(NOT_FOUND).json({ message: 'Запрашиваемый пользователь не найден' });
+      const error = new Error();
+      error.status = 404;
+      throw error;
     }
     return res.status(OK).json(user);
   } catch (err) {
@@ -34,7 +34,7 @@ async function getUserById(req, res, next) {
 async function createUser(req, res, next) {
   try {
     const {
-      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'ссылка', email, password,
+      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://ya.ru/av.bmp', email, password,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
@@ -45,7 +45,14 @@ async function createUser(req, res, next) {
 
     await newUser.validate();
     await newUser.save();
-    return res.status(CREATED).json(newUser);
+    const userRes = {
+      _id: newUser._id,
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+      email: newUser.email,
+    };
+    return res.status(CREATED).json(userRes);
   } catch (err) {
     return next(err);
   }
@@ -55,12 +62,12 @@ async function updateProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(NOT_FOUND).json({ message: 'Запрашиваемый пользователь не найден' });
+      const error = new Error();
+      error.status = 404;
+      throw error;
     }
-
     user.name = req.body.name;
     user.about = req.body.about;
-
     await user.validate();
     await user.save();
     return res.status(OK).json(user);
@@ -73,7 +80,9 @@ async function updateAvatar(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(NOT_FOUND).json({ message: 'Запрашиваемый пользователь не найден' });
+      const error = new Error();
+      error.status = 404;
+      throw error;
     }
     user.avatar = req.body.avatar;
     await user.validate();
@@ -88,9 +97,10 @@ async function getMyProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(NOT_FOUND).json({ message: 'Запрашиваемый пользователь не найден' });
+      const error = new Error();
+      error.status = 404;
+      throw error;
     }
-
     return res.status(OK).json(user);
   } catch (err) {
     return next(err);
@@ -100,7 +110,6 @@ async function getMyProfile(req, res, next) {
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email }).select('+password');
 
     if (user) {
@@ -111,10 +120,13 @@ async function login(req, res, next) {
         res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
         return res.status(OK).json({ message: 'Авторизация успешна', token });
       }
-
-      return res.status(UNAUTHORIZED).json({ message: 'Неправильный пароль' });
+      const error = new Error();
+      error.status = 401;
+      throw error;
     }
-    return res.status(UNAUTHORIZED).json({ message: 'Пользователь с такой почтой не найден' });
+    const error = new Error();
+    error.status = 401;
+    throw error;
   } catch (err) {
     return next(err);
   }
