@@ -34,7 +34,7 @@ async function getUserById(req, res, next) {
 async function createUser(req, res, next) {
   try {
     const {
-      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://ya.ru/av.bmp', email, password,
+      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://ya.https://www.yandex.ru/images/search?pos=1&from=tabbar&img_url=https%3A%2F%2Fchance4traveller.com%2Fwp-content%2Fuploads%2F2021%2F02%2Fb96ce22cfdae9849ce9daeb32b5b4da3.jpg&text=%D0%BA%D1%83%D1%81%D1%82%D0%BE&rpt=simage&lr=2/av.bmp', email, password,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
