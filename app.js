@@ -76,13 +76,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/signin', signInValidation, login);
 app.post('/signup', signUpValidation, createUser);
-app.use(authMiddleware);
-app.use('/', require('./routes/users'));
-app.use('/', require('./routes/cards'));
-
 app.use((req, res, next) => {
   res.status(NOT_FOUND).json({ message: 'Страница не найдена' });
 });
+app.use(authMiddleware);
+app.use('/', require('./routes/users'));
+app.use('/', require('./routes/cards'));
 
 app.use(errors());
 app.use(errorHandler);
