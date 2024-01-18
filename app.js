@@ -32,6 +32,9 @@ function errorHandler(err, req, res, next) {
   if (err.code === 403) {
     return res.status(FORBIDDEN).json({ message: 'Вы не можете удалить карточку другого пользователя' });
   }
+  if (err.code === 404) {
+    return res.status(NOT_FOUND).json({ message: 'Вы не можете удалить карточку другого пользователя' });
+  }
   if (err.code === 11000) {
     return res.status(CONFLICT).json({ message: 'Пользователь с таким email уже существует' });
   }
@@ -51,6 +54,7 @@ const signUpValidation = celebrate({
     password: Joi.string().required().min(8),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
+    avatar: Joi.string().uri(),
   },
 });
 
@@ -76,12 +80,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/signin', signInValidation, login);
 app.post('/signup', signUpValidation, createUser);
+app.use(authMiddleware);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
+
 app.use((req, res, next) => {
   res.status(NOT_FOUND).json({ message: 'Страница не найдена' });
 });
-app.use(authMiddleware);
-app.use('/', require('./routes/users'));
-app.use('/', require('./routes/cards'));
 
 app.use(errors());
 app.use(errorHandler);

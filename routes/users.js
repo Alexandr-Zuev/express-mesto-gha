@@ -3,10 +3,10 @@ const {
   getUsers, getUserById, updateProfile, updateAvatar, getMyProfile,
 } = require('../controllers/users');
 
-router.get('/users', getUsers);
-router.get('/users/me', getMyProfile);
-router.get('/users/:userId', getUserById);
-router.patch('/users/me', updateProfile);
-router.patch('/users/me/avatar', updateAvatar);
+router.get('/', getUsers);
+router.get('/me', getMyProfile);
+router.get('/:userId', getUserById);
+router.patch('/me', updateProfile);
+router.patch('/me/avatar', updateAvatar);
 
 module.exports = router;

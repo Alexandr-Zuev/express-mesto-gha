@@ -57,7 +57,6 @@ async function deleteCardById(req, res, next) {
       error.status = 404;
       throw error;
     }
-
     return res.status(OK).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
     return next(err);

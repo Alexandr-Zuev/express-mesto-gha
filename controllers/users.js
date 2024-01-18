@@ -34,7 +34,7 @@ async function getUserById(req, res, next) {
 async function createUser(req, res, next) {
   try {
     const {
-      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://avatars.mds.yandex.net/i?id=7c542627e95c40e4b3b603dd0c34179f4d5aab40-9264723-images-thumbs&n=13', email, password,
+      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
@@ -131,6 +131,7 @@ async function login(req, res, next) {
     return next(err);
   }
 }
+
 module.exports = {
   getUsers,
   getUserById,
