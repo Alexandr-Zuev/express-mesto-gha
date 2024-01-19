@@ -9,9 +9,9 @@ const SOLT_ROUND = 10;
 const SECRET_KEY = '123';
 
 const userSchema = Joi.object({
-  name: Joi.string().min(2).max(30).required(),
-  about: Joi.string().min(2).max(30).required(),
-  avatar: Joi.string().uri().required(),
+  name: Joi.string().min(2).max(30),
+  about: Joi.string().min(2).max(30),
+  avatar: Joi.string().uri(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 });
@@ -64,13 +64,10 @@ async function getUserById(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
+    await userSchema.validateAsync(req.body);
     const {
       name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
     } = req.body;
-    const newUser = {
-      name, about, avatar, email, password,
-    };
-    await userSchema.validateAsync(newUser);
     const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
     const user = new User({
       name, about, avatar, email, password: hashedPassword,
