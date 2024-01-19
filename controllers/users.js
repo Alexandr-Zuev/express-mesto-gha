@@ -1,11 +1,36 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Joi = require('joi');
 const User = require('../models/user');
 
 const OK = 200;
 const CREATED = 201;
 const SOLT_ROUND = 10;
 const SECRET_KEY = '123';
+
+const userSchema = Joi.object({
+  name: Joi.string().min(2).max(30).required(),
+  about: Joi.string().min(2).max(30).required(),
+  avatar: Joi.string().uri().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required().min(4),
+});
+
+const userIdSchema = Joi.string().regex(/^[0-9a-fA-F]{24}$/);
+
+const updateProfileSchema = Joi.object({
+  name: Joi.string().min(2).max(30).required(),
+  about: Joi.string().min(2).max(30).required(),
+});
+
+const updateAvatarSchema = Joi.object({
+  avatar: Joi.string().uri().required(),
+});
 
 async function getUsers(req, res, next) {
   try {
@@ -18,12 +43,18 @@ async function getUsers(req, res, next) {
 
 async function getUserById(req, res, next) {
   const { userId } = req.params;
+  const validationResult = userIdSchema.validate(userId);
+  if (validationResult.error) {
+    const error = new Error('Некорректный формат идентификатора пользователя');
+    error.status = 400;
+    return next(error);
+  }
   try {
     const user = await User.findById(userId);
     if (!user) {
-      const error = new Error();
-      error.status = 404;
-      throw error;
+      const notFoundError = new Error('Пользователь не найден');
+      notFoundError.status = 404;
+      throw notFoundError;
     }
     return res.status(OK).json(user);
   } catch (err) {
@@ -36,21 +67,21 @@ async function createUser(req, res, next) {
     const {
       name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
     } = req.body;
-
+    const newUser = {
+      name, about, avatar, email, password,
+    };
+    await userSchema.validateAsync(newUser);
     const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
-
-    const newUser = new User({
+    const user = new User({
       name, about, avatar, email, password: hashedPassword,
     });
-
-    await newUser.validate();
-    await newUser.save();
+    await user.save();
     const userRes = {
-      _id: newUser._id,
-      name: newUser.name,
-      about: newUser.about,
-      avatar: newUser.avatar,
-      email: newUser.email,
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
     };
     return res.status(CREATED).json(userRes);
   } catch (err) {
@@ -62,12 +93,14 @@ async function updateProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      const error = new Error();
-      error.status = 404;
-      throw error;
+      const notFoundError = new Error('Пользователь не найден');
+      notFoundError.status = 404;
+      throw notFoundError;
     }
-    user.name = req.body.name;
-    user.about = req.body.about;
+    const { name, about } = req.body;
+    await updateProfileSchema.validateAsync({ name, about });
+    user.name = name;
+    user.about = about;
     await user.validate();
     await user.save();
     return res.status(OK).json(user);
@@ -80,11 +113,13 @@ async function updateAvatar(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      const error = new Error();
+      const error = new Error('Пользователь не найден');
       error.status = 404;
       throw error;
     }
-    user.avatar = req.body.avatar;
+    const { avatar } = req.body;
+    await updateAvatarSchema.validateAsync({ avatar });
+    user.avatar = avatar;
     await user.validate();
     await user.save();
     return res.status(OK).json(user);
@@ -110,21 +145,20 @@ async function getMyProfile(req, res, next) {
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
+    await loginSchema.validateAsync({ email, password });
     const user = await User.findOne({ email }).select('+password');
-
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
-
       if (isPasswordValid) {
         const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '1w' });
         res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
         return res.status(OK).json({ message: 'Авторизация успешна', token });
       }
-      const error = new Error();
+      const error = new Error('Неверный пароль');
       error.status = 401;
       throw error;
     }
-    const error = new Error();
+    const error = new Error('Пользователь не найден');
     error.status = 401;
     throw error;
   } catch (err) {

@@ -5,9 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-const {
-  celebrate, Joi, Segments, errors,
-} = require('celebrate');
+const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 
@@ -23,42 +21,25 @@ function errorHandler(err, req, res, next) {
   if (err.name === 'ValidationError') {
     return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
   }
-  if (err.name === 'CastError') {
+  if (err.name === 'CastError' || err.status === 400) {
     return res.status(ERROR_CODE).json({ message: 'Некорректный формат идентификатора пользователя' });
   }
-  if (err.code === 401) {
+  if (err.status === 401) {
     return res.status(UNAUTHORIZED).json({ message: 'Ошибка авторизации' });
   }
-  if (err.code === 403) {
+  if (err.status === 403) {
     return res.status(FORBIDDEN).json({ message: 'Вы не можете удалить карточку другого пользователя' });
   }
-  if (err.code === 404) {
-    return res.status(NOT_FOUND).json({ message: 'Вы не можете удалить карточку другого пользователя' });
+  if (err.status === 404) {
+    return res.status(NOT_FOUND).json({ message: 'Данные не найдены' });
   }
-  if (err.code === 11000) {
+  if (err.status === 11000) {
     return res.status(CONFLICT).json({ message: 'Пользователь с таким email уже существует' });
   }
   return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
 }
 
-const signInValidation = celebrate({
-  [Segments.BODY]: {
-    email: Joi.string().email().required(),
-    password: Joi.string().required().min(4),
-  },
-});
-
-const signUpValidation = celebrate({
-  [Segments.BODY]: {
-    email: Joi.string().email().required(),
-    password: Joi.string().required().min(8),
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().uri(),
-  },
-});
-
-const { PORT = 3000, BASE_PATH } = process.env;
+const { PORT = 3000 } = process.env;
 const app = express();
 
 app.listen(PORT, () => {
@@ -78,13 +59,13 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', signInValidation, login);
-app.post('/signup', signUpValidation, createUser);
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use(authMiddleware);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(NOT_FOUND).json({ message: 'Страница не найдена' });
 });
 
