@@ -65,6 +65,10 @@ async function getUserById(req, res, next) {
 async function createUser(req, res, next) {
   try {
     await userSchema.validateAsync(req.body);
+  } catch (err) {
+    return next(err);
+  }
+  try {
     const {
       name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
     } = req.body;
@@ -80,7 +84,7 @@ async function createUser(req, res, next) {
       avatar: user.avatar,
       email: user.email,
     };
-    return res.status(CREATED).json(userRes);
+    return res.status(201).json(userRes);
   } catch (err) {
     return next(err);
   }
