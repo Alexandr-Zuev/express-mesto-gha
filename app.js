@@ -17,7 +17,7 @@ const CONFLICT = 409;
 const SERVER_ERROR = 500;
 
 function errorHandler(err, req, res, next) {
-  console.log(err.status);
+  console.log(err);
   if (err.name === 'ValidationError') {
     return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
   }

@@ -92,10 +92,6 @@ async function createUser(req, res, next) {
       return next(err);
     }
   } catch (err) {
-    if (err.isJoi) {
-      const validationError = new Error('Ошибка входных данных');
-      return next(validationError);
-    }
     return next(err);
   }
 }
