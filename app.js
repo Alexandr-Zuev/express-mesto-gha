@@ -10,8 +10,6 @@ const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 
-const NOT_FOUND = 404;
-
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.status || 500;
   const message = statusCode === 500 ? 'На сервере произошла ошибка' : err.message;
@@ -64,8 +62,10 @@ app.use(authMiddleware);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use((req, res) => {
-  res.status(NOT_FOUND).json({ message: 'Страница не найдена' });
+app.use((req, res, next) => {
+  const error = new Error('Страница не найдена');
+  error.status = 404;
+  next(error);
 });
 
 app.use(errors());
