@@ -11,7 +11,7 @@ const {
 const createCardValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required(),
-    link: Joi.string().uri({ scheme: [/https?/] }).required(),
+    link: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
   }),
 });
 

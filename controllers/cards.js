@@ -1,14 +1,8 @@
 const mongoose = require('mongoose');
-const Joi = require('joi');
 const Card = require('../models/card');
 
 const OK = 200;
 const CREATED = 201;
-
-const createCardSchema = Joi.object({
-  name: Joi.string().min(2).max(30).required(),
-  link: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
-});
 
 async function getCards(req, res, next) {
   try {
@@ -22,8 +16,6 @@ async function getCards(req, res, next) {
 async function createCard(req, res, next) {
   try {
     const { name, link } = req.body;
-    await createCardSchema.validateAsync({ name, link });
-
     const newCard = new Card({ name, link, owner: req.user._id });
     await newCard.validate();
     await newCard.save();

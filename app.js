@@ -34,7 +34,7 @@ function errorHandler(err, req, res, next) {
   if (err.status === 404) {
     return res.status(NOT_FOUND).json({ message: 'Данные не найдены' });
   }
-  if (err.status === 11000) {
+  if (err.code === 11000) {
     return res.status(CONFLICT).json({ message: 'Пользователь с таким email уже существует' });
   }
   return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });

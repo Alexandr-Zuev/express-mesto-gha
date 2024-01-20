@@ -18,7 +18,7 @@ async function getUsers(req, res, next) {
 
 async function getUserById(req, res, next) {
   try {
-    const userId = req.params;
+    const { userId } = req.params;
     const user = await User.findById(userId);
 
     if (!user) {
