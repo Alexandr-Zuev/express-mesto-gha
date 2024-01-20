@@ -29,25 +29,25 @@ async function createCard(req, res, next) {
 async function deleteCardById(req, res, next) {
   const { cardId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error();
+    const error = new Error('Удаление карточки с некорректным id карточки');
     error.status = 400;
     throw error;
   }
   try {
     const cardToDelete = await Card.findById(cardId);
     if (!cardToDelete) {
-      const error = new Error();
+      const error = new Error('Удаление карточки с несуществующим в БД id');
       error.status = 404;
       throw error;
     }
     if (cardToDelete.owner.toString() !== req.user._id) {
-      const error = new Error();
+      const error = new Error('Удаление карточки другого пользователя');
       error.status = 403;
       throw error;
     }
     const deletedCard = await Card.findByIdAndDelete(cardId);
     if (!deletedCard) {
-      const error = new Error();
+      const error = new Error('Ошибка удаление карточки');
       error.status = 404;
       throw error;
     }
