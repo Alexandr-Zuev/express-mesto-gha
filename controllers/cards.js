@@ -61,7 +61,7 @@ async function likeCard(req, res, next) {
   const { cardId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error();
+    const error = new Error('Добавление лайка с некорректным id карточки');
     error.status = 400;
     throw error;
   }
@@ -72,7 +72,7 @@ async function likeCard(req, res, next) {
       { new: true },
     );
     if (!updatedCard) {
-      const error = new Error();
+      const error = new Error('Добавление лайка с несуществующим в БД id карточки');
       error.status = 404;
       throw error;
     }
@@ -85,7 +85,7 @@ async function likeCard(req, res, next) {
 async function unlikeCard(req, res, next) {
   const { cardId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error();
+    const error = new Error('Удаление лайка с некорректным id карточки');
     error.status = 400;
     throw error;
   }
@@ -96,7 +96,7 @@ async function unlikeCard(req, res, next) {
       { new: true },
     );
     if (!updatedCard) {
-      const error = new Error();
+      const error = new Error('Удаление лайка с несуществующим в БД id карточки');
       error.status = 404;
       throw error;
     }
