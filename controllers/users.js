@@ -56,7 +56,12 @@ async function createUser(req, res, next) {
 
     return res.status(CREATED).json(userRes);
   } catch (err) {
-    return next(err);
+    if (err.code === 11000) {
+      const error = new Error( 'Пользователь с таким email уже существует');
+      error.status = 409;
+      next(error);
+    } else {
+      next(err);
   }
 }
 
