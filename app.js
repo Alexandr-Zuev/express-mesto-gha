@@ -17,28 +17,14 @@ const NOT_FOUND = 404;
 const CONFLICT = 409;
 const SERVER_ERROR = 500;
 
-function errorHandler(err, req, res, next) {
-  console.log(err);
-  if (err.name === 'ValidationError') {
-    return res.status(ERROR_CODE).json({ message: 'Ошибка валидации данных пользователя' });
-  }
-  if (err.name === 'CastError' || err.status === 400) {
-    return res.status(ERROR_CODE).json({ message: 'Некорректный формат идентификатора пользователя' });
-  }
-  if (err.status === 401) {
-    return res.status(UNAUTHORIZED).json({ message: 'Ошибка авторизации' });
-  }
-  if (err.status === 403) {
-    return res.status(FORBIDDEN).json({ message: 'Вы не можете удалить карточку другого пользователя' });
-  }
-  if (err.status === 404) {
-    return res.status(NOT_FOUND).json({ message: 'Данные не найдены' });
-  }
-  if (err.code === 11000) {
-    return res.status(CONFLICT).json({ message: 'Пользователь с таким email уже существует' });
-  }
-  return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
-}
+const errorHandler = (err, req, res, next) => {
+  const statusCode = err.status || 500;
+  const message = statusCode === 500 ? 'На сервере произошла ошибка' : err.message;
+
+  res.status(statusCode).send({ message });
+
+  next();
+};
 
 const createUserValidation = celebrate({
   body: Joi.object().keys({
