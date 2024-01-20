@@ -13,7 +13,7 @@ const updateProfileValidation = celebrate({
 
 const updateAvatarValidation = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().pattern(/^(https?):\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/).required(),
+    avatar: Joi.string().pattern(/^(https?|ftp):\/\/[^\s\/$.?#].[^\s]*\.(jpg|jpeg|png|gif|bmp)$/).required(),
   }),
 });
 
