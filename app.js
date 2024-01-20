@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 const path = require('path');
 const express = require('express');
+const { celebrate, Joi } = require('celebrate');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
@@ -39,6 +40,23 @@ function errorHandler(err, req, res, next) {
   return res.status(SERVER_ERROR).json({ message: 'На сервере произошла ошибка' });
 }
 
+const createUserValidation = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().uri(),
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+});
+
+const loginValidation = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+});
+
 const { PORT = 3000 } = process.env;
 const app = express();
 
@@ -59,8 +77,8 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', loginValidation, login);
+app.post('/signup', createUserValidation, createUser);
 app.use(authMiddleware);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
