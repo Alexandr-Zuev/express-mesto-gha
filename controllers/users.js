@@ -66,7 +66,7 @@ async function getUserById(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    await userSchema.validateAsync(req.body);
+    await userSchema.validateAsync(req.body, { abortEarly: false });
     try {
       const {
         name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
