@@ -153,4 +153,4 @@ module.exports = {
   updateAvatar,
   getMyProfile,
   login,
-};
+}

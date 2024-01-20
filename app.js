@@ -10,12 +10,7 @@ const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 
-const ERROR_CODE = 400;
-const UNAUTHORIZED = 401;
-const FORBIDDEN = 403;
 const NOT_FOUND = 404;
-const CONFLICT = 409;
-const SERVER_ERROR = 500;
 
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.status || 500;
