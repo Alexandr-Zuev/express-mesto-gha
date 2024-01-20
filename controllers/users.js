@@ -69,6 +69,8 @@ async function updateProfile(req, res, next) {
       error.status = 404;
       throw error;
     }
+    user.name = req.body.name;
+    user.about = req.body.about;
     await user.validate();
     await user.save();
     return res.status(OK).json(user);
