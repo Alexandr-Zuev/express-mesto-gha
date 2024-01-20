@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-const UNAUTHORIZED = 401;
 const SECRET_KEY = '123';
 
 function authMiddleware(req, res, next) {
@@ -15,8 +14,6 @@ function authMiddleware(req, res, next) {
     req.user = payload;
     return next();
   } catch (error) {
-    const error = new Error('Ошибка авторизации: недействительный токен');
-    error.status = 401;
     return next(error);
   }
 }
