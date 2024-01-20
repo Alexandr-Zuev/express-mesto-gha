@@ -84,7 +84,7 @@ async function createUser(req, res, next) {
       avatar: user.avatar,
       email: user.email,
     };
-    return res.status(201).json(userRes);
+    return res.status(CREATED).json(userRes);
   } catch (err) {
     return next(err);
   }
