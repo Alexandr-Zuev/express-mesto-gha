@@ -42,21 +42,23 @@ async function getUsers(req, res, next) {
 }
 
 async function getUserById(req, res, next) {
-  const { userId } = req.params;
-  const validationResult = userIdSchema.validate(userId);
-  if (validationResult.error) {
-    const error = new Error('Некорректный формат идентификатора пользователя');
-    error.status = 400;
-    return next(error);
-  }
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      const notFoundError = new Error('Пользователь не найден');
-      notFoundError.status = 404;
-      throw notFoundError;
+    const { userId } = req.params;
+    await userIdSchema.validateAsync(userId);
+
+    try {
+      const user = await User.findById(userId);
+
+      if (!user) {
+        const error = new Error('Пользователь не найден');
+        error.status = 404;
+        throw error;
+      }
+
+      return res.status(OK).json(user);
+    } catch (err) {
+      return next(err);
     }
-    return res.status(OK).json(user);
   } catch (err) {
     return next(err);
   }
@@ -65,26 +67,30 @@ async function getUserById(req, res, next) {
 async function createUser(req, res, next) {
   try {
     await userSchema.validateAsync(req.body);
-  } catch (err) {
-    return next(err);
-  }
-  try {
-    const {
-      name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
-    } = req.body;
-    const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
-    const user = new User({
-      name, about, avatar, email, password: hashedPassword,
-    });
-    await user.save();
-    const userRes = {
-      _id: user._id,
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      email: user.email,
-    };
-    return res.status(CREATED).json(userRes);
+    try {
+      const {
+        name = 'Жак-Ив Кусто', about = 'Исследователь', avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png', email, password,
+      } = req.body;
+
+      const hashedPassword = await bcrypt.hash(password, SOLT_ROUND);
+      const user = new User({
+        name, about, avatar, email, password: hashedPassword,
+      });
+
+      await user.save();
+
+      const userRes = {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      };
+
+      return res.status(CREATED).json(userRes);
+    } catch (err) {
+      return next(err);
+    }
   } catch (err) {
     return next(err);
   }
@@ -94,17 +100,25 @@ async function updateProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      const notFoundError = new Error('Пользователь не найден');
-      notFoundError.status = 404;
-      throw notFoundError;
+      const error = new Error('Пользователь не найден');
+      error.status = 404;
+      throw error;
     }
-    const { name, about } = req.body;
-    await updateProfileSchema.validateAsync({ name, about });
-    user.name = name;
-    user.about = about;
-    await user.validate();
-    await user.save();
-    return res.status(OK).json(user);
+
+    try {
+      const { name, about } = req.body;
+      await updateProfileSchema.validateAsync({ name, about });
+
+      user.name = name;
+      user.about = about;
+
+      await user.validate();
+      await user.save();
+
+      return res.status(OK).json(user);
+    } catch (err) {
+      return next(err);
+    }
   } catch (err) {
     return next(err);
   }
@@ -112,17 +126,21 @@ async function updateProfile(req, res, next) {
 
 async function updateAvatar(req, res, next) {
   try {
+    const { avatar } = req.body;
+    await updateAvatarSchema.validateAsync({ avatar });
+
     const user = await User.findById(req.user._id);
     if (!user) {
       const error = new Error('Пользователь не найден');
       error.status = 404;
       throw error;
     }
-    const { avatar } = req.body;
-    await updateAvatarSchema.validateAsync({ avatar });
+
     user.avatar = avatar;
+
     await user.validate();
     await user.save();
+
     return res.status(OK).json(user);
   } catch (err) {
     return next(err);
@@ -132,11 +150,13 @@ async function updateAvatar(req, res, next) {
 async function getMyProfile(req, res, next) {
   try {
     const user = await User.findById(req.user._id);
+
     if (!user) {
-      const error = new Error();
+      const error = new Error('Пользователь не найден');
       error.status = 404;
       throw error;
     }
+
     return res.status(OK).json(user);
   } catch (err) {
     return next(err);
