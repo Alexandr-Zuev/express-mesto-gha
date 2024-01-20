@@ -92,22 +92,27 @@ async function createUser(req, res, next) {
       return next(err);
     }
   } catch (err) {
+    if (err.isJoi) {
+      const validationError = new Error('Ошибка входных данных');
+      return next(validationError);
+    }
     return next(err);
   }
 }
 
 async function updateProfile(req, res, next) {
   try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.status = 404;
-      throw error;
-    }
+    const { name, about } = req.body;
+    await updateProfileSchema.validateAsync({ name, about });
 
     try {
-      const { name, about } = req.body;
-      await updateProfileSchema.validateAsync({ name, about });
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        const error = new Error('Пользователь не найден');
+        error.status = 404;
+        throw error;
+      }
 
       user.name = name;
       user.about = about;
