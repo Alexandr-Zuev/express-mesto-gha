@@ -82,7 +82,7 @@ async function updateProfile(req, res, next) {
     return res.status(OK).json(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Некорректные данные при создании пользователя'));
+      return next(new BadRequestError('Некорректные данные при обновлении пользователя'));
     }
     return next(err);
   }
@@ -104,6 +104,9 @@ async function updateAvatar(req, res, next) {
 
     return res.status(OK).json(user);
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Некорректные данные при обновлении пользователя'));
+    }
     return next(err);
   }
 }
