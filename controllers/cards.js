@@ -25,6 +25,9 @@ async function createCard(req, res, next) {
 
     return res.status(CREATED).json(newCard);
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Некорректные данные при создании карточки'));
+    }
     return next(err);
   }
 }

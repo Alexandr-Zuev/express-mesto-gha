@@ -13,7 +13,7 @@ function authMiddleware(req, res, next) {
     req.user = payload;
     return next();
   } catch (error) {
-    return next(error);
+    return next(new UnauthorizedError('Неверный токен'));
   }
 }
 

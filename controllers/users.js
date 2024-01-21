@@ -4,6 +4,7 @@ const User = require('../models/user');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
+const BadRequestError = require('../errors/bad-request-error');
 
 const OK = 200;
 const CREATED = 201;
@@ -60,6 +61,9 @@ async function createUser(req, res, next) {
     if (err.code === 11000) {
       return next(new ConflictError('Пользователь с таким email уже существует'));
     }
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Некорректные данные при создании пользователя'));
+    }
     return next(err);
   }
 }
@@ -77,6 +81,9 @@ async function updateProfile(req, res, next) {
     await user.save();
     return res.status(OK).json(user);
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Некорректные данные при создании пользователя'));
+    }
     return next(err);
   }
 }

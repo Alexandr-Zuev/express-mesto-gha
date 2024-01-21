@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
+const NotFoundError = require('./errors/not-found-error');
 
 const errorHandler = (err, req, res, next) => {
   console.log(err.status);
@@ -63,11 +64,7 @@ app.use(authMiddleware);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use((req, res, next) => {
-  const error = new Error('Страница не найдена');
-  error.status = 404;
-  next(error);
-});
+app.use((req, res, next) => next(new NotFoundError('Страница не найдена')));
 
 app.use(errors());
 app.use(errorHandler);
