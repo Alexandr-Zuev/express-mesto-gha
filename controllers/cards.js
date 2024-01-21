@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
+const NotFoundError = require('../errors/not-found-error');
+const BadRequestError = require('../errors/bad-request-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 const OK = 200;
 const CREATED = 201;
@@ -29,27 +32,19 @@ async function createCard(req, res, next) {
 async function deleteCardById(req, res, next) {
   const { cardId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error('Удаление карточки с некорректным id карточки');
-    error.status = 400;
-    throw error;
+    throw new BadRequestError('Удаление карточки с некорректным id карточки');
   }
   try {
     const cardToDelete = await Card.findById(cardId);
     if (!cardToDelete) {
-      const error = new Error('Удаление карточки с несуществующим в БД id');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Удаление карточки с несуществующим в БД id');
     }
     if (cardToDelete.owner.toString() !== req.user._id) {
-      const error = new Error('Удаление карточки другого пользователя');
-      error.status = 403;
-      throw error;
+      throw new ForbiddenError('Удаление карточки другого пользователя');
     }
     const deletedCard = await Card.findByIdAndDelete(cardId);
     if (!deletedCard) {
-      const error = new Error('Ошибка удаление карточки');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Ошибка удаление карточки');
     }
     return res.status(OK).json({ message: 'Карточка успешно удалена' });
   } catch (err) {
@@ -61,9 +56,7 @@ async function likeCard(req, res, next) {
   const { cardId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error('Добавление лайка с некорректным id карточки');
-    error.status = 400;
-    throw error;
+    throw new BadRequestError('Добавление лайка с некорректным id карточки');
   }
   try {
     const updatedCard = await Card.findByIdAndUpdate(
@@ -72,9 +65,7 @@ async function likeCard(req, res, next) {
       { new: true },
     );
     if (!updatedCard) {
-      const error = new Error('Добавление лайка с несуществующим в БД id карточки');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Добавление лайка с несуществующим в БД id карточки');
     }
     return res.status(OK).json(updatedCard);
   } catch (err) {
@@ -85,9 +76,7 @@ async function likeCard(req, res, next) {
 async function unlikeCard(req, res, next) {
   const { cardId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    const error = new Error('Удаление лайка с некорректным id карточки');
-    error.status = 400;
-    throw error;
+    throw new BadRequestError('Удаление лайка с некорректным id карточки');
   }
   try {
     const updatedCard = await Card.findByIdAndUpdate(
@@ -96,9 +85,7 @@ async function unlikeCard(req, res, next) {
       { new: true },
     );
     if (!updatedCard) {
-      const error = new Error('Удаление лайка с несуществующим в БД id карточки');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Удаление лайка с несуществующим в БД id карточки');
     }
     return res.status(OK).json(updatedCard);
   } catch (err) {

@@ -11,6 +11,7 @@ const { login, createUser } = require('./controllers/users');
 const authMiddleware = require('./middlewares/auth');
 
 const errorHandler = (err, req, res, next) => {
+  console.log(err.status);
   const statusCode = err.status || 500;
   const message = statusCode === 500 ? 'На сервере произошла ошибка' : err.message;
 
