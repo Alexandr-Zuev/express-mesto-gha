@@ -11,7 +11,7 @@ const {
 const createCardValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
-    link: Joi.string().pattern(/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*\.(jpg|jpeg|png|gif|bmp)$/).required(),
+    link: Joi.string().pattern(/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/).required(),
   }),
 });
 
