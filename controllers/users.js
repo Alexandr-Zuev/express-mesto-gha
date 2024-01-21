@@ -1,6 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict-error');
+const NotFoundError = require('../errors/not-found-error');
 
 const OK = 200;
 const CREATED = 201;
@@ -22,9 +25,7 @@ async function getUserById(req, res, next) {
     const user = await User.findById(userId);
 
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден');
     }
 
     return res.status(OK).json(user);
@@ -57,9 +58,7 @@ async function createUser(req, res, next) {
     return res.status(CREATED).json(userRes);
   } catch (err) {
     if (err.code === 11000) {
-      const error = new Error('Пользователь с таким email уже существует');
-      error.status = 409;
-      return next(error);
+      return next(new ConflictError('Пользователь с таким email уже существует'));
     }
     return next(err);
   }
@@ -70,9 +69,7 @@ async function updateProfile(req, res, next) {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден');
     }
     user.name = req.body.name;
     user.about = req.body.about;
@@ -89,9 +86,7 @@ async function updateAvatar(req, res, next) {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден');
     }
 
     const { avatar } = req.body;
@@ -111,9 +106,7 @@ async function getMyProfile(req, res, next) {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.status = 404;
-      throw error;
+      throw new NotFoundError('Пользователь не найден');
     }
 
     return res.status(OK).json(user);
@@ -133,13 +126,9 @@ async function login(req, res, next) {
         res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
         return res.status(OK).json({ message: 'Авторизация успешна', token });
       }
-      const error = new Error('Неверный пароль');
-      error.status = 401;
-      throw error;
+      throw new UnauthorizedError('Неверный пароль');
     }
-    const error = new Error('Пользователь не найден');
-    error.status = 401;
-    throw error;
+    throw new UnauthorizedError('Пользователь не найден');
   } catch (err) {
     return next(err);
   }
